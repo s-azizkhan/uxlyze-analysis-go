@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"uxlyze/analyzer/pkg/types"
@@ -35,6 +36,7 @@ func generateHTMLContent(report *types.Report, psi *types.PageSpeedInsights) (st
 	if err != nil {
 		return "", fmt.Errorf("error parsing template: %v", err)
 	}
+	report.Title = "UI/UX Analysis Report for " + strings.Split(report.URL, "://")[1]
 
 	data := struct {
 		*types.Report
@@ -66,7 +68,7 @@ func GetPageSpeedInsights(url string) (*types.PageSpeedInsights, error) {
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package types
 
 type Report struct {
+	Title              string
 	URL                string
 	Summary            string
 	VisualHierarchy    string
