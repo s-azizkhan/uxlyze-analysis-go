@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 	"uxlyze/analyzer/pkg/report"
+	"uxlyze/analyzer/pkg/types"
 
 	"github.com/joho/godotenv"
 )
@@ -16,14 +17,25 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	url := "https://www.x.com" // Replace with actual URL
+	log.Println("Starting UI/UX analysis...")
+
+	AnalyzeWebsite("https://justaziz.com")
+	// resp, err := report.AnalyzeUXWithGemini("test.png")
+	// if err != nil {
+	// 	log.Fatalf("Failed to analyze UX with Gemini: %v", err)
+	// }
+	log.Printf("UX analysis completed")
+}
+
+func AnalyzeWebsite(url string) {
 
 	startTime := time.Now()
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
 	startAlloc := m.Alloc
 
-	rep, err := report.Generate(url)
+	// capturing SC took 4-5sec more
+	rep, err := report.Generate(url, false, types.Both)
 	if err != nil {
 		log.Fatalf("Failed to generate report: %v", err)
 	}
