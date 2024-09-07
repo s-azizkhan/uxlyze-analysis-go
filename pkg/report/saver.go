@@ -71,8 +71,13 @@ func generateHTMLContent(report *types.Report, psi *types.PageSpeedInsights) (st
 	}{
 		Report:             report,
 		PageSpeedInsights:  psi,
-		PerformanceMetrics: getPerformanceMetrics(psi),
-		KeyAudits:          getKeyAudits(psi),
+		PerformanceMetrics: nil,
+		KeyAudits:          nil,
+	}
+
+	if psi != nil {
+		data.PerformanceMetrics = getPerformanceMetrics(psi)
+		data.KeyAudits = getKeyAudits(psi)
 	}
 
 	var buf bytes.Buffer
