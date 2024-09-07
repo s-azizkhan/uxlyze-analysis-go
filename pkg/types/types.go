@@ -50,3 +50,34 @@ type PageSpeedInsights struct {
 		} `json:"metrics"`
 	} `json:"loadingExperience"`
 }
+
+// Gemini return type
+type GeminiUXAnalysisResult struct {
+	Usability            CategoryAnalysis `json:"usability"`
+	VisualDesign         CategoryAnalysis `json:"visual_design"`
+	Typography           CategoryAnalysis `json:"typography"`
+	ButtonDesign         CategoryAnalysis `json:"button_design"`
+	Navigation           CategoryAnalysis `json:"navigation"`
+	Accessibility        CategoryAnalysis `json:"accessibility"`
+	MobileResponsiveness CategoryAnalysis `json:"mobile_responsiveness"`
+	UserFlow             CategoryAnalysis `json:"user_flow"`
+	Interactivity        CategoryAnalysis `json:"interactivity"`
+}
+
+// Issue represents individual issues found during the analysis.
+type Issue struct {
+	Description string `json:"description"`
+	Location    string `json:"location"`
+	Impact      string `json:"impact"`
+}
+
+// Suggestion represents actionable suggestions to improve the issues found.
+type Suggestion struct {
+	Description    string `json:"description"`
+	ExpectedImpact string `json:"expected_impact"`
+}
+
+type CategoryAnalysis struct {
+	Issues      []Issue      `json:"issues"`
+	Suggestions []Suggestion `json:"suggestions"`
+}
