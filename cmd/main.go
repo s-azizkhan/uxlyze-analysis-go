@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"runtime"
+	"strings"
 	"time"
 	"uxlyze/analyzer/pkg/report"
 
@@ -15,7 +16,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	url := "https://www.logicwind.com" // Replace with actual URL
+	url := "https://www.x.com" // Replace with actual URL
 
 	startTime := time.Now()
 	var m runtime.MemStats
@@ -36,9 +37,13 @@ func main() {
 		log.Printf("PageSpeed Insights fetched in %v\n", time.Since(psiStart))
 	}
 
-	err = report.Save(rep, "uiux_report.html", psi)
+	timestamp := time.Now().Format("2006-01-02_15-04-05")
+	filename := fmt.Sprintf("%s_%s_ui_and_ux_analysis_report.html", strings.Split(url, "://")[1], timestamp)
+	err = report.Save(rep, filename, psi)
 	if err != nil {
 		log.Fatalf("Failed to save report: %v", err)
+	} else {
+		log.Printf("Report saved to %s\n", filename)
 	}
 
 	runtime.ReadMemStats(&m)
