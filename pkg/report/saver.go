@@ -68,11 +68,13 @@ func generateHTMLContent(report *types.Report, psi *types.PageSpeedInsights) (st
 		PageSpeedInsights  *types.PageSpeedInsights
 		PerformanceMetrics map[string]string
 		KeyAudits          []map[string]interface{}
+		GeminiAnalysis     *types.GeminiUXAnalysisResult
 	}{
 		Report:             report,
 		PageSpeedInsights:  psi,
 		PerformanceMetrics: nil,
 		KeyAudits:          nil,
+		GeminiAnalysis:     report.GeminiAnalysis,
 	}
 
 	if psi != nil {

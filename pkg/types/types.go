@@ -9,6 +9,7 @@ type Report struct {
 	MobileFriendliness string
 	Readability        string
 	Screenshots        map[string]string
+	GeminiAnalysis     *GeminiUXAnalysisResult `json:"geminiAnalysis,omitempty"`
 }
 
 type SectionAnalysis struct {

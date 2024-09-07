@@ -2,8 +2,11 @@ package report
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"log"
+	"os"
+	"strings"
 	"time"
 
 	"uxlyze/analyzer/pkg/analysis"
@@ -11,7 +14,33 @@ import (
 	"uxlyze/analyzer/pkg/types"
 
 	"github.com/chromedp/chromedp"
+	"github.com/google/uuid"
 )
+
+func SaveBase64ToLocal(base64String string, pathName string) {
+	// Split the Base64 string into data URI parts (if it contains metadata)
+	parts := strings.SplitN(base64String, ",", 2)
+	if len(parts) != 2 {
+		log.Fatal("Invalid Base64 data URI format")
+	}
+
+	// Detect the MIME type from the metadata
+	rawBase64 := parts[1]
+
+	// Decode the Base64 string into file bytes
+	fileData, err := base64.StdEncoding.DecodeString(rawBase64)
+	if err != nil {
+		log.Fatal("Failed to decode Base64 string:", err)
+	}
+
+	// Save the file to the local system
+	err = os.WriteFile(pathName, fileData, 0644)
+	if err != nil {
+		log.Fatal("Failed to save the file:", err)
+	}
+
+	fmt.Println("File saved successfully as:", pathName)
+}
 
 // Generate creates a report for the given URL, analyzing various aspects such as
 // visual hierarchy, navigation, mobile friendliness, and readability. It also captures
@@ -139,6 +168,22 @@ func Generate(url string, takeScreenshots bool, screenshotMode types.ScreenshotM
 			}
 		}
 		log.Printf("Capturing Readability screenshot took: %v\n", time.Since(stepStart))
+
+		// Perform Gemini UX analysis
+		tempUuid := uuid.New()
+		tempImagePath := "temp_screenshot_" + tempUuid.String() + ".png"
+		SaveBase64ToLocal("data:image/png;base64,"+report.Screenshots["VisualHierarchy"], tempImagePath)
+		if err != nil {
+			log.Printf("Error saving temporary screenshot: %v\n", err)
+		} else {
+			geminiAnalysis, err := AnalyzeUXWithGemini(tempImagePath)
+			if err != nil {
+				log.Printf("Error analyzing UX with Gemini: %v\n", err)
+			} else {
+				report.GeminiAnalysis = geminiAnalysis
+			}
+			os.Remove(tempImagePath)
+		}
 	}
 
 	// Log total time taken for report generation.

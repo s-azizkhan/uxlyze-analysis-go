@@ -125,6 +125,87 @@
           </div>
         </div>
 
+        <!-- AI-Powered UX Analysis Section -->
+        {{if .GeminiAnalysis}}
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+          <h2 class="text-2xl font-semibold text-indigo-600 mb-4">
+            AI-Powered UX Analysis
+          </h2>
+
+          <!-- Usability -->
+          <div class="mb-6">
+            <h3 class="text-xl font-semibold text-indigo-500 mb-2">
+              Usability
+            </h3>
+            {{template "categoryAnalysis" .GeminiAnalysis.Usability}}
+          </div>
+
+          <!-- Visual Design -->
+          <div class="mb-6">
+            <h3 class="text-xl font-semibold text-indigo-500 mb-2">
+              Visual Design
+            </h3>
+            {{template "categoryAnalysis" .GeminiAnalysis.VisualDesign}}
+          </div>
+
+          <!-- Typography -->
+          <div class="mb-6">
+            <h3 class="text-xl font-semibold text-indigo-500 mb-2">
+              Typography
+            </h3>
+            {{template "categoryAnalysis" .GeminiAnalysis.Typography}}
+          </div>
+
+          <!-- Button Design -->
+          <div class="mb-6">
+            <h3 class="text-xl font-semibold text-indigo-500 mb-2">
+              Button Design
+            </h3>
+            {{template "categoryAnalysis" .GeminiAnalysis.ButtonDesign}}
+          </div>
+
+          <!-- Navigation -->
+          <div class="mb-6">
+            <h3 class="text-xl font-semibold text-indigo-500 mb-2">
+              Navigation
+            </h3>
+            {{template "categoryAnalysis" .GeminiAnalysis.Navigation}}
+          </div>
+
+          <!-- Accessibility -->
+          <div class="mb-6">
+            <h3 class="text-xl font-semibold text-indigo-500 mb-2">
+              Accessibility
+            </h3>
+            {{template "categoryAnalysis" .GeminiAnalysis.Accessibility}}
+          </div>
+
+          <!-- Mobile Responsiveness -->
+          <div class="mb-6">
+            <h3 class="text-xl font-semibold text-indigo-500 mb-2">
+              Mobile Responsiveness
+            </h3>
+            {{template "categoryAnalysis" .GeminiAnalysis.MobileResponsiveness}}
+          </div>
+
+          <!-- User Flow -->
+          <div class="mb-6">
+            <h3 class="text-xl font-semibold text-indigo-500 mb-2">
+              User Flow
+            </h3>
+            {{template "categoryAnalysis" .GeminiAnalysis.UserFlow}}
+          </div>
+
+          <!-- Interactivity -->
+          <div class="mb-6">
+            <h3 class="text-xl font-semibold text-indigo-500 mb-2">
+              Interactivity
+            </h3>
+            {{template "categoryAnalysis" .GeminiAnalysis.Interactivity}}
+          </div>
+        </div>
+        {{end}}
+
         <!-- Key Metrics -->
         <h3 class="text-xl font-semibold text-indigo-600 mb-3">Key Metrics</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
@@ -301,6 +382,34 @@
           class="w-full rounded-lg shadow-sm hidden print:block"
         />
       </div>
+
+      <!-- Template for Category Analysis -->
+      {{define "categoryAnalysis"}} {{if .Issues}}
+      <div class="mb-4">
+        <h4 class="text-lg font-medium text-gray-700 mb-2">Issues:</h4>
+        <ul class="list-disc list-inside text-gray-600">
+          {{range .Issues}}
+          <li>
+            <strong>{{.Description}}</strong>
+            {{if .Location}} (Location: {{.Location}}){{end}} {{if .Impact}} -
+            Impact: {{.Impact}}{{end}}
+          </li>
+          {{end}}
+        </ul>
+      </div>
+      {{end}} {{if .Suggestions}}
+      <div>
+        <h4 class="text-lg font-medium text-gray-700 mb-2">Suggestions:</h4>
+        <ul class="list-disc list-inside text-gray-600">
+          {{range .Suggestions}}
+          <li>
+            <strong>{{.Description}}</strong>
+            {{if .ExpectedImpact}} - Expected Impact: {{.ExpectedImpact}}{{end}}
+          </li>
+          {{end}}
+        </ul>
+      </div>
+      {{end}} {{end}}
     </div>
 
     <footer class="my-8 text-center text-sm text-gray-600">
