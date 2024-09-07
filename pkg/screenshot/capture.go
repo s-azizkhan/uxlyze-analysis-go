@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"time"
 
 	"github.com/chromedp/chromedp"
 )
@@ -26,6 +27,8 @@ func Capture(ctx context.Context, selector string) (string, error) {
 
 	err = chromedp.Run(ctx,
 		chromedp.WaitVisible(selector, chromedp.ByQuery),
+		// Sleep for 2 seconds to allow the page to load
+		chromedp.Sleep(2*time.Second),
 		chromedp.Screenshot(selector, &buf, chromedp.NodeVisible, chromedp.ByQuery),
 	)
 

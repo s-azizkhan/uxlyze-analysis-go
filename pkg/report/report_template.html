@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-gray-100">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>UI/UX Analysis Report by Uxlyze</title>
+  </head>
+  <body class="font-sans text-gray-800 leading-relaxed">
+    <div class="max-w-4xl mx-auto p-6">
+      <header class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-indigo-700">
+          UI/UX Analysis Report
+        </h1>
+        <a
+          href="https://uxlyze.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-indigo-600 hover:text-indigo-800"
+        >
+          <!-- <img
+            src="https://uxlyze.com/logo.png"
+            alt="Uxlyze Logo"
+            class="h-8"
+          /> -->
+          UXlyze
+        </a>
+      </header>
+
+      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-2xl font-semibold text-indigo-600 mb-4">Summary</h2>
+        <p class="text-lg">{{.Summary}}</p>
+      </div>
+
+      <!-- Visual Hierarchy Section -->
+      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-2xl font-semibold text-indigo-600 mb-4">
+          Visual Hierarchy
+        </h2>
+        <p class="mb-4">{{.VisualHierarchy}}</p>
+        <div class="my-4 p-4 bg-indigo-50 rounded-lg">
+          <h3 class="text-lg font-semibold text-indigo-700 mb-2">
+            Action Items:
+          </h3>
+          <ul class="list-disc list-inside text-indigo-600">
+            <li>Review and adjust heading sizes for better hierarchy</li>
+            <li>Ensure consistent use of whitespace</li>
+            <li>Consider using color to emphasize important elements</li>
+          </ul>
+        </div>
+        <button
+          class="text-indigo-600 hover:text-indigo-800 mb-2 screenshot-toggle"
+          data-target="visual-hierarchy-screenshot"
+        >
+          View Screenshot
+        </button>
+        <img
+          id="visual-hierarchy-screenshot"
+          src="data:image/png;base64,{{.Screenshots.VisualHierarchy}}"
+          alt="Visual Hierarchy Screenshot"
+          class="w-full rounded-lg shadow-sm hidden print:block"
+        />
+      </div>
+
+      <!-- Navigation Section -->
+      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-2xl font-semibold text-indigo-600 mb-4">Navigation</h2>
+        <p class="mb-4">{{.Navigation}}</p>
+        <div class="my-4 p-4 bg-indigo-50 rounded-lg">
+          <h3 class="text-lg font-semibold text-indigo-700 mb-2">
+            Action Items:
+          </h3>
+          <ul class="list-disc list-inside text-indigo-600">
+            <li>Simplify navigation menu structure</li>
+            <li>Ensure clear and descriptive labels</li>
+            <li>Implement breadcrumbs for improved user orientation</li>
+          </ul>
+        </div>
+        <button
+          class="text-indigo-600 hover:text-indigo-800 mb-2 screenshot-toggle"
+          data-target="navigation-screenshot"
+        >
+          View Screenshot
+        </button>
+        <img
+          id="navigation-screenshot"
+          src="data:image/png;base64,{{.Screenshots.Navigation}}"
+          alt="Navigation Screenshot"
+          class="w-full rounded-lg shadow-sm hidden print:block"
+        />
+      </div>
+
+      <!-- Mobile Friendliness Section -->
+      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-2xl font-semibold text-indigo-600 mb-4">
+          Mobile Friendliness
+        </h2>
+        <p class="mb-4">{{.MobileFriendliness}}</p>
+        <div class="my-4 p-4 bg-indigo-50 rounded-lg">
+          <h3 class="text-lg font-semibold text-indigo-700 mb-2">
+            Action Items:
+          </h3>
+          <ul class="list-disc list-inside text-indigo-600">
+            <li>Optimize tap target sizes for mobile users</li>
+            <li>Implement responsive images</li>
+            <li>Ensure text is readable without zooming</li>
+          </ul>
+        </div>
+        <button
+          class="text-indigo-600 hover:text-indigo-800 mb-2 screenshot-toggle"
+          data-target="mobile-friendliness-screenshot"
+        >
+          View Screenshot
+        </button>
+        <img
+          id="mobile-friendliness-screenshot"
+          src="data:image/png;base64,{{.Screenshots.MobileFriendliness}}"
+          alt="Mobile Friendliness Screenshot"
+          class="w-full rounded-lg shadow-sm hidden print:block"
+        />
+      </div>
+
+      <!-- Readability Section -->
+      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-2xl font-semibold text-indigo-600 mb-4">Readability</h2>
+        <p class="mb-4">{{.Readability}}</p>
+        <div class="my-4 p-4 bg-indigo-50 rounded-lg">
+          <h3 class="text-lg font-semibold text-indigo-700 mb-2">
+            Action Items:
+          </h3>
+          <ul class="list-disc list-inside text-indigo-600">
+            <li>Increase contrast between text and background</li>
+            <li>Use appropriate font sizes and line heights</li>
+            <li>Break long paragraphs into shorter, scannable sections</li>
+          </ul>
+        </div>
+        <button
+          class="text-indigo-600 hover:text-indigo-800 mb-2 screenshot-toggle"
+          data-target="readability-screenshot"
+        >
+          View Screenshot
+        </button>
+        <img
+          id="readability-screenshot"
+          src="data:image/png;base64,{{.Screenshots.Readability}}"
+          alt="Readability Screenshot"
+          class="w-full rounded-lg shadow-sm hidden print:block"
+        />
+      </div>
+
+      {{if .PageSpeedInsights}}
+      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-2xl font-semibold text-indigo-600 mb-4">
+          PageSpeed Insights
+        </h2>
+        <div class="my-4 p-4 bg-indigo-50 rounded-lg">
+          <h3 class="text-lg font-semibold text-indigo-700 mb-2">
+            Action Items:
+          </h3>
+          <ul class="list-disc list-inside text-indigo-600">
+            <li>Optimize images and use next-gen formats</li>
+            <li>Minimize render-blocking resources</li>
+            <li>Implement proper heading structure for better accessibility</li>
+            <li>Ensure all images have alt text</li>
+          </ul>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="p-4 bg-green-100 rounded-lg">
+            <h3 class="text-lg font-semibold text-green-700 mb-2">
+              Performance
+            </h3>
+            <p class="text-3xl font-bold text-green-600">
+              {{.PageSpeedInsights.LighthouseResult.Categories.Performance.Score}}
+            </p>
+          </div>
+          <div class="p-4 bg-blue-100 rounded-lg">
+            <h3 class="text-lg font-semibold text-blue-700 mb-2">
+              Accessibility
+            </h3>
+            <p class="text-3xl font-bold text-blue-600">
+              {{.PageSpeedInsights.LighthouseResult.Categories.Accessibility.Score}}
+            </p>
+          </div>
+          <div class="p-4 bg-purple-100 rounded-lg">
+            <h3 class="text-lg font-semibold text-purple-700 mb-2">
+              Best Practices
+            </h3>
+            <p class="text-3xl font-bold text-purple-600">
+              {{.PageSpeedInsights.LighthouseResult.Categories.BestPractices.Score}}
+            </p>
+          </div>
+          <div class="p-4 bg-yellow-100 rounded-lg">
+            <h3 class="text-lg font-semibold text-yellow-700 mb-2">SEO</h3>
+            <p class="text-3xl font-bold text-yellow-600">
+              {{.PageSpeedInsights.LighthouseResult.Categories.SEO.Score}}
+            </p>
+          </div>
+        </div>
+      </div>
+      {{end}}
+    </div>
+
+    <footer class="mt-8 text-center text-sm text-gray-600">
+      <p>
+        Report generated by
+        <a
+          href="https://uxlyze.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-indigo-600 hover:text-indigo-800"
+          >Uxlyze</a
+        >
+      </p>
+    </footer>
+
+    <!-- Feedback Widget -->
+    <div
+      class="fixed right-5 top-1/2 transform -translate-y-1/2 z-50"
+      id="feedback-widget"
+      type="button"
+      aria-haspopup="dialog"
+      aria-expanded="false"
+      aria-controls="radix-:rh:"
+      data-state="closed"
+    >
+      <button
+        class="bg-black text-white inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 shadow h-9 rotate-[-90deg] origin-right bg-primary text-primary-foreground hover:bg-primary/90 rounded-t-lg rounded-b-none px-6 py-2"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="lucide lucide-message-square-plus mr-2 h-4 w-4 rotate-90"
+        >
+          <path
+            d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+          ></path>
+          <path d="M12 7v6"></path>
+          <path d="M9 10h6"></path>
+        </svg>
+        Submit Feedback
+      </button>
+    </div>
+
+    <script>
+      document.querySelectorAll(".screenshot-toggle").forEach((button) => {
+        button.addEventListener("click", function () {
+          const targetId = this.getAttribute("data-target");
+          const screenshot = document.getElementById(targetId);
+          if (screenshot.classList.contains("hidden")) {
+            screenshot.classList.remove("hidden");
+            this.textContent = "Hide Screenshot";
+          } else {
+            screenshot.classList.add("hidden");
+            this.textContent = "View Screenshot";
+          }
+        });
+      });
+
+      // Feedback widget functionality
+      document
+        .getElementById("feedback-widget")
+        .addEventListener("click", function () {
+          window.open("https://uxlyze.com/feedback", "_blank");
+        });
+    </script>
+  </body>
+</html>
