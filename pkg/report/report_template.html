@@ -51,6 +51,18 @@
         </div>
       </header>
 
+      <!-- Add disclaimer here -->
+      <div
+        class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-8 rounded-lg text-sm"
+      >
+        <p class="font-bold">Disclaimer:</p>
+        <p>
+          This report is generated automatically and may contain inaccuracies.
+          It's always recommended to verify the findings and consult with UX
+          professionals for a comprehensive analysis.
+        </p>
+      </div>
+
       <div class="bg-white rounded-lg shadow-lg p-8 mb-12">
         <h2 class="text-3xl font-bold text-indigo-600 mb-6">Summary</h2>
         <p
@@ -60,6 +72,103 @@
           {{.Summary}}
         </p>
       </div>
+
+      {{if .PageSpeedInsights}}
+      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-2xl font-semibold text-indigo-600 mb-4">
+          PageSpeed Insights
+        </h2>
+
+        <!-- Performance Scores -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div
+            class="p-4 bg-gradient-to-br from-green-100 to-green-200 rounded-lg"
+          >
+            <h3 class="text-lg font-semibold text-green-700 mb-2">
+              Performance
+            </h3>
+            <p class="text-3xl font-bold text-green-600">
+              {{percentage
+              .PageSpeedInsights.LighthouseResult.Categories.Performance.Score}}
+            </p>
+          </div>
+          <div
+            class="p-4 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg"
+          >
+            <h3 class="text-lg font-semibold text-blue-700 mb-2">
+              Accessibility
+            </h3>
+            <p class="text-3xl font-bold text-blue-600">
+              {{percentage
+              .PageSpeedInsights.LighthouseResult.Categories.Accessibility.Score}}
+            </p>
+          </div>
+          <div
+            class="p-4 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg"
+          >
+            <h3 class="text-lg font-semibold text-purple-700 mb-2">
+              Best Practices
+            </h3>
+            <p class="text-3xl font-bold text-purple-600">
+              {{percentage
+              .PageSpeedInsights.LighthouseResult.Categories.BestPractices.Score}}
+            </p>
+          </div>
+          <div
+            class="p-4 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-lg"
+          >
+            <h3 class="text-lg font-semibold text-yellow-700 mb-2">SEO</h3>
+            <p class="text-3xl font-bold text-yellow-600">
+              {{percentage
+              .PageSpeedInsights.LighthouseResult.Categories.SEO.Score}}
+            </p>
+          </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <h3 class="text-xl font-semibold text-indigo-600 mb-3">Key Metrics</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+          {{range .KeyAudits}}
+          <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+            <h4 class="text-lg font-semibold text-gray-700 mb-2">{{.title}}</h4>
+            <p
+              class="text-2xl font-bold {{if ge .score 0.9}}text-green-600{{else if ge .score 0.5}}text-yellow-600{{else}}text-red-600{{end}}"
+            >
+              {{.displayValue}}
+            </p>
+          </div>
+          {{end}}
+        </div>
+
+        <!-- Performance Metrics -->
+        <h3 class="text-xl font-semibold text-indigo-600 mb-3">
+          Performance Metrics
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          {{range $key, $value := .PerformanceMetrics}}
+          <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+            <h4 class="text-lg font-semibold text-gray-700 mb-2">{{$key}}</h4>
+            <p class="text-xl font-bold text-indigo-600">{{$value}}</p>
+          </div>
+          {{end}}
+        </div>
+
+        <!-- Action Items -->
+        <div class="my-4 p-4 bg-indigo-50 rounded-lg">
+          <h3 class="text-lg font-semibold text-indigo-700 mb-2">
+            Action Items:
+          </h3>
+          <ul class="list-disc list-inside text-indigo-600">
+            <li>Optimize images and use next-gen formats</li>
+            <li>Minimize render-blocking resources</li>
+            <li>Implement proper heading structure for better accessibility</li>
+            <li>Ensure all images have alt text</li>
+            <li>Improve server response time</li>
+            <li>Optimize JavaScript execution</li>
+          </ul>
+        </div>
+      </div>
+      {{end}}
 
       <!-- Visual Hierarchy Section -->
       <div class="bg-white rounded-lg shadow-md p-6 mb-8">
@@ -192,60 +301,6 @@
           class="w-full rounded-lg shadow-sm hidden print:block"
         />
       </div>
-
-      {{if .PageSpeedInsights}}
-      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 class="text-2xl font-semibold text-indigo-600 mb-4">
-          PageSpeed Insights
-        </h2>
-        <div
-          class="my-4 p-4 bg-indigo-50 rounded-lg editable"
-          contenteditable="false"
-        >
-          <h3 class="text-lg font-semibold text-indigo-700 mb-2">
-            Action Items:
-          </h3>
-          <ul class="list-disc list-inside text-indigo-600">
-            <li>Optimize images and use next-gen formats</li>
-            <li>Minimize render-blocking resources</li>
-            <li>Implement proper heading structure for better accessibility</li>
-            <li>Ensure all images have alt text</li>
-          </ul>
-        </div>
-        <div class="grid grid-cols-2 gap-4">
-          <div class="p-4 bg-green-100 rounded-lg">
-            <h3 class="text-lg font-semibold text-green-700 mb-2">
-              Performance
-            </h3>
-            <p class="text-3xl font-bold text-green-600">
-              {{.PageSpeedInsights.LighthouseResult.Categories.Performance.Score}}
-            </p>
-          </div>
-          <div class="p-4 bg-blue-100 rounded-lg">
-            <h3 class="text-lg font-semibold text-blue-700 mb-2">
-              Accessibility
-            </h3>
-            <p class="text-3xl font-bold text-blue-600">
-              {{.PageSpeedInsights.LighthouseResult.Categories.Accessibility.Score}}
-            </p>
-          </div>
-          <div class="p-4 bg-purple-100 rounded-lg">
-            <h3 class="text-lg font-semibold text-purple-700 mb-2">
-              Best Practices
-            </h3>
-            <p class="text-3xl font-bold text-purple-600">
-              {{.PageSpeedInsights.LighthouseResult.Categories.BestPractices.Score}}
-            </p>
-          </div>
-          <div class="p-4 bg-yellow-100 rounded-lg">
-            <h3 class="text-lg font-semibold text-yellow-700 mb-2">SEO</h3>
-            <p class="text-3xl font-bold text-yellow-600">
-              {{.PageSpeedInsights.LighthouseResult.Categories.SEO.Score}}
-            </p>
-          </div>
-        </div>
-      </div>
-      {{end}}
     </div>
 
     <footer class="my-8 text-center text-sm text-gray-600">

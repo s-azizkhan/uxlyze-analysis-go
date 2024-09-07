@@ -30,11 +30,23 @@ type PageSpeedInsights struct {
 				Score float64 `json:"score"`
 			} `json:"accessibility"`
 			BestPractices struct {
-				Score float64 `json:"best-practices"`
+				Score float64 `json:"score"`
 			} `json:"best-practices"`
 			SEO struct {
 				Score float64 `json:"score"`
 			} `json:"seo"`
 		} `json:"categories"`
+		Audits map[string]struct {
+			Score        float64 `json:"score"`
+			Title        string  `json:"title"`
+			DisplayValue string  `json:"displayValue"`
+		} `json:"audits"`
 	} `json:"lighthouseResult"`
+	LoadingExperience struct {
+		OverallCategory string `json:"overall_category"`
+		Metrics         map[string]struct {
+			Percentile int    `json:"percentile"`
+			Category   string `json:"category"`
+		} `json:"metrics"`
+	} `json:"loadingExperience"`
 }
