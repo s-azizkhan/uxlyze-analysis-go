@@ -25,7 +25,7 @@ import (
 //
 //	*types.Report - A pointer to the generated report containing the analysis results.
 //	error - An error if any step of the report generation fails.
-func Generate(url string) (*types.Report, error) {
+func Generate(url string, takeScreenshots bool, screenshotMode types.ScreenshotMode) (*types.Report, error) {
 	log.Println("Starting report generation for", url)
 	startTime := time.Now()
 
@@ -93,46 +93,53 @@ func Generate(url string) (*types.Report, error) {
 	log.Printf("Analyzing readability took: %v\n", time.Since(stepStart))
 
 	// Step: Capture Screenshots
-	stepStart = time.Now()
-	report.Screenshots["VisualHierarchy"], err = screenshot.Capture(ctx, "body")
-	if err != nil {
-		log.Printf("Error capturing visual hierarchy screenshot: %v\n", err)
-	}
-	log.Printf("Capturing VisualHierarchy screenshot took: %v\n", time.Since(stepStart))
+	if takeScreenshots {
 
-	stepStart = time.Now()
-	report.Screenshots["Navigation"], err = screenshot.Capture(ctx, "nav")
-	if err != nil {
-		log.Printf("Error capturing navigation screenshot: %v\n", err)
-	}
-	log.Printf("Capturing Navigation screenshot took: %v\n", time.Since(stepStart))
-
-	// Emulate mobile view and capture mobile friendliness screenshot.
-	stepStart = time.Now()
-	_ = chromedp.Run(ctx, chromedp.EmulateViewport(375, 812, chromedp.EmulateScale(2.0)))
-	report.Screenshots["MobileFriendliness"], err = screenshot.Capture(ctx, "body")
-	if err != nil {
-		log.Printf("Error capturing mobile friendliness screenshot: %v\n", err)
-	}
-	log.Printf("Capturing MobileFriendliness screenshot took: %v\n", time.Since(stepStart))
-
-	// Reset to default desktop viewport.
-	_ = chromedp.Run(ctx, chromedp.EmulateViewport(0, 0))
-
-	// Capture readability screenshot.
-	stepStart = time.Now()
-	report.Screenshots["Readability"], err = screenshot.Capture(ctx, "main")
-	if err != nil {
-		log.Printf("Error capturing readability screenshot: %v\n", err)
-	}
-	// Fall back to capturing body if main doesn't exist.
-	if report.Screenshots["Readability"] == "" {
-		report.Screenshots["Readability"], err = screenshot.Capture(ctx, "body")
-		if err != nil {
-			log.Printf("Error capturing fallback readability screenshot: %v\n", err)
+		if screenshotMode == types.Desktop || screenshotMode == types.Both {
+			stepStart = time.Now()
+			report.Screenshots["VisualHierarchy"], err = screenshot.Capture(ctx, "body")
+			if err != nil {
+				log.Printf("Error capturing visual hierarchy screenshot: %v\n", err)
+			}
+			log.Printf("Capturing VisualHierarchy screenshot took: %v\n", time.Since(stepStart))
 		}
+
+		stepStart = time.Now()
+		report.Screenshots["Navigation"], err = screenshot.Capture(ctx, "nav")
+		if err != nil {
+			log.Printf("Error capturing navigation screenshot: %v\n", err)
+		}
+		log.Printf("Capturing Navigation screenshot took: %v\n", time.Since(stepStart))
+
+		if screenshotMode == types.Mobile || screenshotMode == types.Both {
+			// Emulate mobile view and capture mobile friendliness screenshot.
+			stepStart = time.Now()
+			_ = chromedp.Run(ctx, chromedp.EmulateViewport(375, 812, chromedp.EmulateScale(2.0)))
+			report.Screenshots["MobileFriendliness"], err = screenshot.Capture(ctx, "body")
+			if err != nil {
+				log.Printf("Error capturing mobile friendliness screenshot: %v\n", err)
+			}
+			log.Printf("Capturing MobileFriendliness screenshot took: %v\n", time.Since(stepStart))
+		}
+
+		// Reset to default desktop viewport.
+		_ = chromedp.Run(ctx, chromedp.EmulateViewport(0, 0))
+
+		// Capture readability screenshot.
+		stepStart = time.Now()
+		report.Screenshots["Readability"], err = screenshot.Capture(ctx, "main")
+		if err != nil {
+			log.Printf("Error capturing readability screenshot: %v\n", err)
+		}
+		// Fall back to capturing body if main doesn't exist.
+		if report.Screenshots["Readability"] == "" {
+			report.Screenshots["Readability"], err = screenshot.Capture(ctx, "body")
+			if err != nil {
+				log.Printf("Error capturing fallback readability screenshot: %v\n", err)
+			}
+		}
+		log.Printf("Capturing Readability screenshot took: %v\n", time.Since(stepStart))
 	}
-	log.Printf("Capturing Readability screenshot took: %v\n", time.Since(stepStart))
 
 	// Log total time taken for report generation.
 	log.Printf("Total report generation time: %v\n", time.Since(startTime))
