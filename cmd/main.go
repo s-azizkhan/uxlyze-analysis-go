@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"runtime"
 	"strings"
 	"time"
+	"uxlyze/analyzer/api"
 	"uxlyze/analyzer/pkg/report"
 	"uxlyze/analyzer/pkg/types"
 
@@ -17,10 +19,10 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	log.Println("Starting UI/UX analysis...")
+	log.Println("Starting UI/UX analysis server...")
 
-	AnalyzeWebsite("https://justaziz.com")
-	log.Printf("UX analysis completed")
+	http.HandleFunc("/analyze", api.HandleAnalyzeRequest)
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 func AnalyzeWebsite(url string) {
@@ -29,23 +31,14 @@ func AnalyzeWebsite(url string) {
 	runtime.ReadMemStats(&m)
 	startAlloc := m.Alloc
 
-	rep, err := report.Generate(url, true, types.Desktop)
+	rep, err := report.Generate(url, true, types.Desktop, true, true)
 	if err != nil {
 		log.Fatalf("Failed to generate report: %v", err)
 	}
 
-	log.Println("Fetching PageSpeed Insights...")
-	psiStart := time.Now()
-	psi, err := report.GetPageSpeedInsights(url)
-	if err != nil {
-		log.Printf("Failed to get PageSpeed Insights: %v\n", err)
-	} else {
-		log.Printf("PageSpeed Insights fetched in %v\n", time.Since(psiStart))
-	}
-
 	timestamp := time.Now().Format("2006-01-02_15-04-05")
 	filename := fmt.Sprintf("%s_%s_ui_and_ux_analysis_report.html", strings.Split(url, "://")[1], timestamp)
-	err = report.Save(rep, filename, psi)
+	err = report.Save(rep, filename)
 	if err != nil {
 		log.Fatalf("Failed to save report: %v", err)
 	} else {

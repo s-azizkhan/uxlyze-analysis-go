@@ -54,7 +54,7 @@ func SaveBase64ToLocal(base64String string, pathName string) {
 //
 //	*types.Report - A pointer to the generated report containing the analysis results.
 //	error - An error if any step of the report generation fails.
-func Generate(url string, takeScreenshots bool, screenshotMode types.ScreenshotMode) (*types.Report, error) {
+func Generate(url string, takeScreenshots bool, screenshotMode types.ScreenshotMode, includePSI bool, includeGeminiAnalysis bool) (*types.Report, error) {
 	log.Println("Starting report generation for", url)
 	startTime := time.Now()
 
@@ -176,13 +176,26 @@ func Generate(url string, takeScreenshots bool, screenshotMode types.ScreenshotM
 		if err != nil {
 			log.Printf("Error saving temporary screenshot: %v\n", err)
 		} else {
-			geminiAnalysis, err := AnalyzeUXWithGemini(tempImagePath)
-			if err != nil {
-				log.Printf("Error analyzing UX with Gemini: %v\n", err)
-			} else {
-				report.GeminiAnalysis = geminiAnalysis
+			if includeGeminiAnalysis {
+				geminiAnalysis, err := AnalyzeUXWithGemini(tempImagePath)
+				if err != nil {
+					log.Printf("Error analyzing UX with Gemini: %v\n", err)
+				} else {
+					report.GeminiAnalysis = geminiAnalysis
+				}
 			}
 			os.Remove(tempImagePath)
+		}
+	}
+
+	if includePSI {
+		stepStart = time.Now()
+		psi, err := GetPageSpeedInsights(url)
+		if err != nil {
+			log.Printf("Error getting PageSpeed Insights: %v\n", err)
+		} else {
+			report.PageSpeedInsights = psi
+			log.Printf("Getting PageSpeed Insights took: %v\n", time.Since(stepStart))
 		}
 	}
 

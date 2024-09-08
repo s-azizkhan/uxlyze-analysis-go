@@ -10,6 +10,7 @@ type Report struct {
 	Readability        string
 	Screenshots        map[string]string
 	GeminiAnalysis     *GeminiUXAnalysisResult `json:"geminiAnalysis,omitempty"`
+	PageSpeedInsights  *PageSpeedInsights      `json:"pageSpeedInsights,omitempty"`
 }
 
 type SectionAnalysis struct {
