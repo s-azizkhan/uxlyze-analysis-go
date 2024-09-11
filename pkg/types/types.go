@@ -53,15 +53,6 @@ type PageSpeedInsights struct {
 	} `json:"loadingExperience"`
 }
 
-// enum for screenShot mode
-type ScreenshotMode string
-
-const (
-	Mobile  ScreenshotMode = "mobile"
-	Desktop ScreenshotMode = "desktop"
-	Both    ScreenshotMode = "both"
-)
-
 // Gemini return type
 type GeminiUXAnalysisResult struct {
 	Usability            CategoryAnalysis `json:"usability"`

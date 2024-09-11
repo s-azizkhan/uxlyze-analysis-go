@@ -9,7 +9,6 @@ import (
 	"time"
 	"uxlyze/analyzer/api"
 	"uxlyze/analyzer/pkg/report"
-	"uxlyze/analyzer/pkg/types"
 
 	"github.com/joho/godotenv"
 )
@@ -21,8 +20,18 @@ func main() {
 	}
 	log.Println("Starting UI/UX analysis server...")
 
-	http.HandleFunc("/analyze", api.HandleAnalyzeRequest)
+	http.HandleFunc("/version", logExecutionTime(api.HandleVersionRequest))
+	http.HandleFunc("/analyze", logExecutionTime(api.HandleAnalyzeRequest))
 	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+func logExecutionTime(handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		startTime := time.Now()
+		handler.ServeHTTP(w, r)
+		duration := time.Since(startTime)
+		log.Printf("%s %s %v", r.Method, r.URL.Path, duration)
+	}
 }
 
 func AnalyzeWebsite(url string) {
@@ -31,7 +40,7 @@ func AnalyzeWebsite(url string) {
 	runtime.ReadMemStats(&m)
 	startAlloc := m.Alloc
 
-	rep, err := report.Generate(url, true, types.Desktop, true, true)
+	rep, err := report.Generate(url, true, true, true)
 	if err != nil {
 		log.Fatalf("Failed to generate report: %v", err)
 	}

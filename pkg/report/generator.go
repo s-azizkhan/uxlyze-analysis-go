@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"uxlyze/analyzer/pkg/ai"
 	"uxlyze/analyzer/pkg/analysis"
 	"uxlyze/analyzer/pkg/screenshot"
 	"uxlyze/analyzer/pkg/types"
@@ -54,7 +55,7 @@ func SaveBase64ToLocal(base64String string, pathName string) {
 //
 //	*types.Report - A pointer to the generated report containing the analysis results.
 //	error - An error if any step of the report generation fails.
-func Generate(url string, takeScreenshots bool, screenshotMode types.ScreenshotMode, includePSI bool, includeGeminiAnalysis bool) (*types.Report, error) {
+func Generate(url string, takeScreenshots bool, includePSI bool, includeGeminiAnalysis bool) (*types.Report, error) {
 	log.Println("Starting report generation for", url)
 	startTime := time.Now()
 
@@ -124,14 +125,12 @@ func Generate(url string, takeScreenshots bool, screenshotMode types.ScreenshotM
 	// Step: Capture Screenshots
 	if takeScreenshots {
 
-		if screenshotMode == types.Desktop || screenshotMode == types.Both {
-			stepStart = time.Now()
-			report.Screenshots["VisualHierarchy"], err = screenshot.Capture(ctx, "body")
-			if err != nil {
-				log.Printf("Error capturing visual hierarchy screenshot: %v\n", err)
-			}
-			log.Printf("Capturing VisualHierarchy screenshot took: %v\n", time.Since(stepStart))
+		stepStart = time.Now()
+		report.Screenshots["Desktop"], err = screenshot.Capture(ctx, "body")
+		if err != nil {
+			log.Printf("Error capturing Desktop screenshot: %v\n", err)
 		}
+		log.Printf("Capturing Desktop screenshot took: %v\n", time.Since(stepStart))
 
 		stepStart = time.Now()
 		report.Screenshots["Navigation"], err = screenshot.Capture(ctx, "nav")
@@ -140,52 +139,57 @@ func Generate(url string, takeScreenshots bool, screenshotMode types.ScreenshotM
 		}
 		log.Printf("Capturing Navigation screenshot took: %v\n", time.Since(stepStart))
 
-		if screenshotMode == types.Mobile || screenshotMode == types.Both {
-			// Emulate mobile view and capture mobile friendliness screenshot.
-			stepStart = time.Now()
-			_ = chromedp.Run(ctx, chromedp.EmulateViewport(375, 812, chromedp.EmulateScale(2.0)))
-			report.Screenshots["MobileFriendliness"], err = screenshot.Capture(ctx, "body")
-			if err != nil {
-				log.Printf("Error capturing mobile friendliness screenshot: %v\n", err)
-			}
-			log.Printf("Capturing MobileFriendliness screenshot took: %v\n", time.Since(stepStart))
+		// Emulate mobile view and capture mobile friendliness screenshot.
+		stepStart = time.Now()
+		// calculate the page height
+		var pageHeight int64
+		err = chromedp.Run(ctx, chromedp.EvaluateAsDevTools(`document.body.scrollHeight`, &pageHeight))
+		if err != nil {
+			log.Printf("Error calculating page height: %v\n", err)
 		}
+		_ = chromedp.Run(ctx, chromedp.EmulateViewport(350, pageHeight, chromedp.EmulateScale(2.0)))
+		report.Screenshots["Mobile"], err = screenshot.Capture(ctx, "body")
+		if err != nil {
+			log.Printf("Error capturing mobile friendliness screenshot: %v\n", err)
+		}
+		log.Printf("Capturing Mobile screenshot took: %v\n", time.Since(stepStart))
 
 		// Reset to default desktop viewport.
 		_ = chromedp.Run(ctx, chromedp.EmulateViewport(0, 0))
 
-		// Capture readability screenshot.
-		stepStart = time.Now()
-		report.Screenshots["Readability"], err = screenshot.Capture(ctx, "main")
-		if err != nil {
-			log.Printf("Error capturing readability screenshot: %v\n", err)
-		}
-		// Fall back to capturing body if main doesn't exist.
-		if report.Screenshots["Readability"] == "" {
-			report.Screenshots["Readability"], err = screenshot.Capture(ctx, "body")
+	}
+	// Perform Gemini UX analysis
+	if includeGeminiAnalysis {
+
+		if report.Screenshots["Desktop"] == "" {
+			log.Println("No screenshot available for Gemini analysis")
+			//  take the screenshot
+			report.Screenshots["Desktop"], err = screenshot.Capture(ctx, "body")
 			if err != nil {
-				log.Printf("Error capturing fallback readability screenshot: %v\n", err)
+				log.Printf("Error capturing Desktop screenshot: %v\n", err)
 			}
 		}
-		log.Printf("Capturing Readability screenshot took: %v\n", time.Since(stepStart))
-
-		// Perform Gemini UX analysis
 		tempUuid := uuid.New()
 		tempImagePath := "temp_screenshot_" + tempUuid.String() + ".png"
-		SaveBase64ToLocal("data:image/png;base64,"+report.Screenshots["VisualHierarchy"], tempImagePath)
+		SaveBase64ToLocal("data:image/png;base64,"+report.Screenshots["Desktop"], tempImagePath)
 		if err != nil {
 			log.Printf("Error saving temporary screenshot: %v\n", err)
 		} else {
-			if includeGeminiAnalysis {
-				geminiAnalysis, err := AnalyzeUXWithGemini(tempImagePath)
-				if err != nil {
-					log.Printf("Error analyzing UX with Gemini: %v\n", err)
-				} else {
-					report.GeminiAnalysis = geminiAnalysis
-				}
+			geminiAnalysis, err := ai.AnalyzeUXWithGemini(tempImagePath)
+			if err != nil {
+				log.Printf("Error analyzing UX with Gemini: %v\n", err)
+			} else {
+				report.GeminiAnalysis = geminiAnalysis
 			}
 			os.Remove(tempImagePath)
 		}
+
+	}
+
+	if !takeScreenshots {
+		report.Screenshots["Desktop"] = ""
+		report.Screenshots["Mobile"] = ""
+		report.Screenshots["Navigation"] = ""
 	}
 
 	if includePSI {
@@ -198,6 +202,8 @@ func Generate(url string, takeScreenshots bool, screenshotMode types.ScreenshotM
 			log.Printf("Getting PageSpeed Insights took: %v\n", time.Since(stepStart))
 		}
 	}
+
+	report.Title = "UI/UX Analysis Report for " + strings.Split(report.URL, "://")[1]
 
 	// Log total time taken for report generation.
 	log.Printf("Total report generation time: %v\n", time.Since(startTime))

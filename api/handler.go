@@ -4,39 +4,45 @@ import (
 	"encoding/json"
 	"net/http"
 	"uxlyze/analyzer/pkg/report"
-	"uxlyze/analyzer/pkg/types"
 )
+
+func HandleVersionRequest(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"version": "1.0.0"})
+}
 
 func HandleAnalyzeRequest(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{"error": "Method not allowed"})
+		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
 
 	var request struct {
-		URL                   string               `json:"url"`
-		IncludeScreenshots    bool                 `json:"includeScreenshots"`
-		ScreenshotMode        types.ScreenshotMode `json:"screenshotMode"`
-		IncludePSI            bool                 `json:"includePSI"`
-		IncludeGeminiAnalysis bool                 `json:"includeGeminiAnalysis"`
+		URL               string `json:"url"`
+		IncludePreview    bool   `json:"includePreview"`
+		IncludePSI        bool   `json:"includePSI"`
+		IncludeAIAnalysis bool   `json:"includeAIAnalysis"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	report, err := report.Generate(
 		request.URL,
-		request.IncludeScreenshots,
-		request.ScreenshotMode,
+		request.IncludePreview,
 		request.IncludePSI,
-		request.IncludeGeminiAnalysis,
+		request.IncludeAIAnalysis,
 	)
 
 	if err != nil {
-		http.Error(w, "Error generating report: "+err.Error(), http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{"error": "Error generating report: " + err.Error()})
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
