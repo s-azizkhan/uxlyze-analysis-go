@@ -64,12 +64,12 @@
       </div>
 
       <div class="bg-white rounded-lg shadow-lg p-8 mb-12">
-        <h2 class="text-3xl font-bold text-indigo-600 mb-6">Summary</h2>
+        <h2 class="text-3xl font-bold text-indigo-600 mb-6">Description</h2>
         <p
           class="text-xl leading-relaxed text-gray-700 editable"
           contenteditable="false"
         >
-          {{.Summary}}
+          {{.Description}}
         </p>
       </div>
 
@@ -253,11 +253,10 @@
 
       <!-- Visual Hierarchy Section -->
       <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 class="text-2xl font-semibold text-indigo-600 mb-4">
-          Visual Hierarchy
-        </h2>
+        <h2 class="text-2xl font-semibold text-indigo-600 mb-4">Font Sizes</h2>
         <p class="mb-4 editable" contenteditable="false">
-          {{.VisualHierarchy}}
+          {{range $key, $value := .FontSizes}}
+          <span class="font-bold">{{$key}}</span>: {{$value}} {{end}}
         </p>
         <div
           class="my-4 p-4 bg-indigo-50 rounded-lg editable"

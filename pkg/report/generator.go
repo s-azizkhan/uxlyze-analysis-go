@@ -82,21 +82,21 @@ func Generate(url string, takeScreenshots bool, includePSI bool, includeGeminiAn
 
 	// Measure and log each step with timing.
 
-	// Step: Generate summary
+	// Step: grab description
 	stepStart = time.Now()
-	report.Summary, err = generateSummary(ctx)
+	report.Description, err = generateDescription(ctx)
 	if err != nil {
-		log.Printf("Error generating summary: %v\n", err)
+		log.Printf("Error capturing description: %v\n", err)
 	}
-	log.Printf("Generating summary took: %v\n", time.Since(stepStart))
+	log.Printf("Capturing description took: %v\n", time.Since(stepStart))
 
-	// Step: Analyze Visual Hierarchy
-	stepStart = time.Now()
-	report.VisualHierarchy, err = analysis.AnalyzeVisualHierarchy(ctx)
-	if err != nil {
-		log.Printf("Error analyzing visual hierarchy: %v\n", err)
-	}
-	log.Printf("Analyzing visual hierarchy took: %v\n", time.Since(stepStart))
+	// // Step: Analyze Visual Hierarchy
+	// stepStart = time.Now()
+	// report.FontSizes, err = analysis.AnalyzeFontSizes(ctx)
+	// if err != nil {
+	// 	log.Printf("Error analyzing visual hierarchy: %v\n", err)
+	// }
+	// log.Printf("Analyzing visual hierarchy took: %v\n", time.Since(stepStart))
 
 	// Step: Analyze Navigation
 	stepStart = time.Now()
@@ -121,6 +121,30 @@ func Generate(url string, takeScreenshots bool, includePSI bool, includeGeminiAn
 		log.Printf("Error analyzing readability: %v\n", err)
 	}
 	log.Printf("Analyzing readability took: %v\n", time.Since(stepStart))
+
+	// Step: Analyze Color Usage
+	stepStart = time.Now()
+	report.ColorUsage, err = analysis.AnalyzeColorUsage(ctx)
+	if err != nil {
+		log.Printf("Error analyzing color usage: %v\n", err)
+	}
+	log.Printf("Analyzing color usage took: %v\n", time.Since(stepStart))
+
+	// Step: Analyze Font Usage
+	stepStart = time.Now()
+	report.FontUsage, err = analysis.AnalyzeFontUsage(ctx)
+	if err != nil {
+		log.Printf("Error analyzing font usage: %v\n", err)
+	}
+	log.Printf("Analyzing font usage took: %v\n", time.Since(stepStart))
+	
+	// Step: Analyze Image Usage
+	stepStart = time.Now()
+	report.ImageUsage, err = analysis.AnalyzeImageUsage(ctx)
+	if err != nil {
+		log.Printf("Error analyzing font usage: %v\n", err)
+	}
+	log.Printf("Analyzing image usage took: %v\n", time.Since(stepStart))
 
 	// Step: Capture Screenshots
 	if takeScreenshots {
@@ -212,7 +236,7 @@ func Generate(url string, takeScreenshots bool, includePSI bool, includeGeminiAn
 	return &report, nil
 }
 
-// generateSummary extracts the title and description metadata from the web page and formats them into a summary.
+// generateDescription extracts the title and description metadata from the web page and formats them into a description.
 //
 // Parameters:
 //
@@ -220,9 +244,9 @@ func Generate(url string, takeScreenshots bool, includePSI bool, includeGeminiAn
 //
 // Returns:
 //
-//	string - A summary containing the title and description of the website.
+//	string - A description containing the title and description of the website.
 //	error - An error if any of the extraction steps fail.
-func generateSummary(ctx context.Context) (string, error) {
+func generateDescription(ctx context.Context) (string, error) {
 	var title, description string
 
 	// Run chromedp tasks to extract the page title and meta description.

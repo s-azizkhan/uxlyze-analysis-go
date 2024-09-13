@@ -35,6 +35,27 @@ func uploadToGemini(ctx context.Context, client *genai.Client, path, mimeType st
 	return fileData.URI
 }
 
+// loadPrompt loads the prompt from the given JSON file.
+func loadPrompt(filePath string) (string, error) {
+	promptData, err := os.ReadFile(filePath)
+	if err != nil {
+		return "", fmt.Errorf("error reading %s: %v", filePath, err)
+	}
+
+	var promptsJson map[string]interface{}
+	err = json.Unmarshal(promptData, &promptsJson)
+	if err != nil {
+		return "", fmt.Errorf("error unmarshalling %s: %v", filePath, err)
+	}
+
+	geminiPrompt, ok := promptsJson["gemini"].(map[string]interface{})["v2"].(string)
+	if !ok || geminiPrompt == "" {
+		return "", fmt.Errorf("gemini prompt not found in %s", filePath)
+	}
+
+	return geminiPrompt, nil
+}
+
 func AnalyzeUXWithGemini(imagePath string) (*types.GeminiUXAnalysisResult, error) {
 
 	ctx := context.Background()
@@ -68,6 +89,19 @@ func AnalyzeUXWithGemini(imagePath string) (*types.GeminiUXAnalysisResult, error
 	model.ResponseMIMEType = "application/json"
 	model.ResponseSchema = types.GeminiResponseSchema
 
+	// Use prompts.json to get the prompt
+	geminiPrompt, err := loadPrompt("pkg/ai/prompts.json")
+
+	if err != nil {
+		log.Fatalf("Error loading gemini prompt: %v", err)
+		return nil, fmt.Errorf("Error loading gemini prompt: %v", err)
+	}
+
+	if geminiPrompt == "" {
+		log.Fatalf("Error getting gemini prompt: %v", err)
+		return nil, fmt.Errorf("Error getting gemini prompt: %v", err)
+	}
+
 	// TODO Make these files available on the local file system
 	// You may need to update the file paths
 	ext := filepath.Ext(imagePath)
@@ -77,21 +111,22 @@ func AnalyzeUXWithGemini(imagePath string) (*types.GeminiUXAnalysisResult, error
 	fileURIs := []string{
 		uploadToGemini(ctx, client, imagePath, mimeType),
 	}
-
 	session := model.StartChat()
 	session.History = []*genai.Content{
 		{
 			Role: "user",
 			Parts: []genai.Part{
 				genai.FileData{URI: fileURIs[0]},
-				genai.Text("Conduct a thorough UI & UX analysis of this website, focusing on delivering a highly detailed, insightful, crisp, straight-forward and actionable report.\n\nEvaluate key elements such as:\n\nUsability: Identify pain points in user interaction, navigation flow, and ease of use. Provide specific suggestions to streamline user paths and reduce friction.\nVisual Design: Analyze the overall aesthetics, consistency in color schemes, whitespace usage, visual hierarchy, and alignment. Suggest improvements for visual clarity, brand coherence, and engagement.\nTypography: Assess the legibility and consistency of font sizes, styles, and hierarchy. Recommend adjustments to improve readability and ensure consistent use of typography across devices and screen sizes.\nButton & CTA Design: Examine button designs, including size, color contrast, hover effects, and clarity of calls to action (CTAs). Suggest improvements for making CTAs more intuitive and visually prominent.\nNavigation: Analyze the structure and intuitiveness of the navigation menu, dropdowns, and any breadcrumb systems. Provide suggestions for improving discoverability and reducing user effort.\nAccessibility: Assess the website's accessibility for users with disabilities, including color contrast ratios, alt text, keyboard navigation, and screen reader compatibility. Provide specific fixes to ensure ADA/WCAG compliance.\nMobile Responsiveness: Evaluate how well the design adapts to various screen sizes and devices. Identify any layout issues or usability challenges on mobile and recommend improvements for a seamless experience.\nUser Flow & Information Architecture: Analyze how users move through the site, from entry points to conversion or exit. Identify any confusing steps, bottlenecks, or redundant actions, and suggest ways to optimize the flow to improve conversion rates.\nInteractivity & Feedback: Evaluate interactive elements such as forms, sliders, and hover effects. Provide suggestions for enhancing user feedback through animations, transitions, and micro-interactions to make the site feel more responsive and engaging.\nDeliver concrete, actionable suggestions for each issue found, focusing on practical improvements that can enhance the user experience, overall engagement, and conversion potential of the site, response should be very short & straight forward with minimum words."),
+				genai.Text(string(geminiPrompt)),
 			},
 		},
 	}
 
-	resp, err := session.SendMessage(ctx, genai.Text("INSERT_INPUT_HERE"))
+	resp, err := session.SendMessage(ctx, genai.Text("Keep the response short and concise"))
+	// resp, err := session.SendMessage(ctx)
 	if err != nil {
 		log.Fatalf("Error sending message: %v", err)
+		fmt.Println(err)
 		return nil, fmt.Errorf("Error sending message: %v", err)
 	}
 
