@@ -1,18 +1,17 @@
 package types
 
 type Report struct {
-	Title              string
-	URL                string
-	Description        string
-	Navigation         string
-	MobileFriendliness string
-	Readability        string
-	Screenshots        map[string]string
-	ColorUsage         map[string]interface{}
-	FontUsage          map[string]interface{}
-	ImageUsage         map[string]interface{}
-	GeminiAnalysis     *GeminiUXAnalysisResult `json:"geminiAnalysis,omitempty"`
-	PageSpeedInsights  *PageSpeedInsights      `json:"pageSpeedInsights,omitempty"`
+	Title             string
+	URL               string
+	Navigation        map[string]interface{}
+	MobileFriendly    bool
+	Readability       string
+	Screenshots       map[string]string
+	ColorUsage        map[string]interface{}
+	FontUsage         map[string]interface{}
+	SEO               map[string]interface{}
+	GeminiAnalysis    *GeminiUXAnalysisResult `json:"geminiAnalysis,omitempty"`
+	PageSpeedInsights *PageSpeedInsights      `json:"pageSpeedInsights,omitempty"`
 }
 
 type SectionAnalysis struct {

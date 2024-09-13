@@ -135,51 +135,6 @@ func AnalyzeFontUsage(ctx context.Context) (map[string]interface{}, error) {
 	return result, nil
 }
 
-func AnalyzeImageUsage(ctx context.Context) (map[string]interface{}, error) {
-	var result map[string]interface{}
-	fmt.Println("Analyzing image usage...")
-	err := chromedp.Run(ctx,
-		chromedp.EvaluateAsDevTools(`
-		(function() {
-			function analyzeImages() {
-				const images = document.querySelectorAll('img');
-				const imageInfo = [];
-
-				images.forEach(img => {
-					imageInfo.push({
-						src: img.src,
-						width: img.width,
-						height: img.height,
-						fileSize: img.src ? getImageSize(img.src) : 'unknown'
-					});
-				});
-
-				return imageInfo;
-			}
-
-			function getImageSize(url) {
-				const xhr = new XMLHttpRequest();
-				xhr.open('HEAD', url, false);
-				xhr.send(null);
-
-				if (xhr.status === 200) {
-					return xhr.getResponseHeader('Content-Length');
-				}
-				return 'unknown';
-			}
-
-			const result = analyzeImages();
-			return result;
-		})();
-		`, &result),
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
-}
 
 // Deprecated
 func AnalyzeFontSizes(ctx context.Context) (string, error) {

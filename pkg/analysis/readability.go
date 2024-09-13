@@ -2,6 +2,7 @@ package analysis
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/chromedp/chromedp"
 )
@@ -17,7 +18,9 @@ func AnalyzeReadability(ctx context.Context) (string, error) {
 	}
 
 	if paragraphCount > 20 {
-		return "Readability: High (many paragraphs)", nil
+		res := fmt.Sprintf("High (many paragraphs (%d))", paragraphCount)
+		return res, nil
 	}
-	return "Readability: Low (few paragraphs)", nil
+	res := fmt.Sprintf("Low (few paragraphs (%d))", paragraphCount)
+	return res, nil
 }

@@ -55,7 +55,7 @@ func SaveBase64ToLocal(base64String string, pathName string) {
 //
 //	*types.Report - A pointer to the generated report containing the analysis results.
 //	error - An error if any step of the report generation fails.
-func Generate(url string, takeScreenshots bool, includePSI bool, includeGeminiAnalysis bool) (*types.Report, error) {
+func Generate(url string, takeScreenshots bool, includePSI bool, includeAIAnalysis bool) (*types.Report, error) {
 	log.Println("Starting report generation for", url)
 	startTime := time.Now()
 
@@ -80,16 +80,6 @@ func Generate(url string, takeScreenshots bool, includePSI bool, includeGeminiAn
 	report.URL = url
 	report.Screenshots = make(map[string]string)
 
-	// Measure and log each step with timing.
-
-	// Step: grab description
-	stepStart = time.Now()
-	report.Description, err = generateDescription(ctx)
-	if err != nil {
-		log.Printf("Error capturing description: %v\n", err)
-	}
-	log.Printf("Capturing description took: %v\n", time.Since(stepStart))
-
 	// // Step: Analyze Visual Hierarchy
 	// stepStart = time.Now()
 	// report.FontSizes, err = analysis.AnalyzeFontSizes(ctx)
@@ -98,17 +88,9 @@ func Generate(url string, takeScreenshots bool, includePSI bool, includeGeminiAn
 	// }
 	// log.Printf("Analyzing visual hierarchy took: %v\n", time.Since(stepStart))
 
-	// Step: Analyze Navigation
-	stepStart = time.Now()
-	report.Navigation, err = analysis.AnalyzeNavigation(ctx)
-	if err != nil {
-		log.Printf("Error analyzing navigation: %v\n", err)
-	}
-	log.Printf("Analyzing navigation took: %v\n", time.Since(stepStart))
-
 	// Step: Analyze Mobile Friendliness
 	stepStart = time.Now()
-	report.MobileFriendliness, err = analysis.AnalyzeMobileFriendliness(ctx)
+	report.MobileFriendly, err = analysis.AnalyzeMobileFriendly(ctx)
 	if err != nil {
 		log.Printf("Error analyzing mobile friendliness: %v\n", err)
 	}
@@ -121,6 +103,14 @@ func Generate(url string, takeScreenshots bool, includePSI bool, includeGeminiAn
 		log.Printf("Error analyzing readability: %v\n", err)
 	}
 	log.Printf("Analyzing readability took: %v\n", time.Since(stepStart))
+
+	// Step: Analyze Navigation
+	stepStart = time.Now()
+	report.Navigation, err = analysis.AnalyzeNavigation(ctx)
+	if err != nil {
+		log.Printf("Error analyzing navigation: %v\n", err)
+	}
+	log.Printf("Analyzing navigation took: %v\n", time.Since(stepStart))
 
 	// Step: Analyze Color Usage
 	stepStart = time.Now()
@@ -137,14 +127,14 @@ func Generate(url string, takeScreenshots bool, includePSI bool, includeGeminiAn
 		log.Printf("Error analyzing font usage: %v\n", err)
 	}
 	log.Printf("Analyzing font usage took: %v\n", time.Since(stepStart))
-	
-	// Step: Analyze Image Usage
+
+	// Step: Analyze SEO
 	stepStart = time.Now()
-	report.ImageUsage, err = analysis.AnalyzeImageUsage(ctx)
+	report.SEO, err = analysis.AnalyzeSEO(ctx)
 	if err != nil {
-		log.Printf("Error analyzing font usage: %v\n", err)
+		log.Printf("Error analyzing SEO : %v\n", err)
 	}
-	log.Printf("Analyzing image usage took: %v\n", time.Since(stepStart))
+	log.Printf("Analyzing SEO took: %v\n", time.Since(stepStart))
 
 	// Step: Capture Screenshots
 	if takeScreenshots {
@@ -183,7 +173,7 @@ func Generate(url string, takeScreenshots bool, includePSI bool, includeGeminiAn
 
 	}
 	// Perform Gemini UX analysis
-	if includeGeminiAnalysis {
+	if includeAIAnalysis {
 
 		if report.Screenshots["Desktop"] == "" {
 			log.Println("No screenshot available for Gemini analysis")
@@ -234,33 +224,4 @@ func Generate(url string, takeScreenshots bool, includePSI bool, includeGeminiAn
 
 	// Return the generated report.
 	return &report, nil
-}
-
-// generateDescription extracts the title and description metadata from the web page and formats them into a description.
-//
-// Parameters:
-//
-//	ctx - The context controlling the chromedp browser instance.
-//
-// Returns:
-//
-//	string - A description containing the title and description of the website.
-//	error - An error if any of the extraction steps fail.
-func generateDescription(ctx context.Context) (string, error) {
-	var title, description string
-
-	// Run chromedp tasks to extract the page title and meta description.
-	err := chromedp.Run(ctx,
-		chromedp.Title(&title),
-		// This JavaScript snippet extracts the content of the "description" meta tag.
-		chromedp.EvaluateAsDevTools(`document.querySelector("meta[name='description']")?.getAttribute("content") || "No description found"`, &description),
-	)
-
-	// If there was an error, return an empty string and the error.
-	if err != nil {
-		return "", err
-	}
-
-	// Return a formatted summary string containing the title and description.
-	return fmt.Sprintf("Website: %s\nDescription: %s", title, description), nil
 }
