@@ -1,15 +1,16 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"runtime"
 	"sync/atomic"
 	"time"
 	process_worker "uxlyze/analyzer/pkg/process-worker"
 
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
@@ -86,7 +87,6 @@ func worker(id int, rateLimiter *RateLimiter) {
 
 		// Process the job
 		fmt.Printf("Worker %d processing job ID: %d with payload: %s\n", id, job.ID, job.Payload)
-		// job processing
 		process_worker.AnalyzeReportWorker(job.Payload)
 
 		// Log the end time and resource usage after processing the job
@@ -107,19 +107,14 @@ func worker(id int, rateLimiter *RateLimiter) {
 }
 
 // SubmitJobHandler handles job submissions via API
-func SubmitJobHandler(w http.ResponseWriter, r *http.Request) {
-	// Only allow POST requests
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
+func SubmitJobHandler(c *gin.Context) {
 	// Parse the incoming JSON payload
 	var requestBody struct {
-		Payload string `json:"payload"`
+		Payload string `json:"payload" binding:"required"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil || requestBody.Payload == "" {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
+
+	if err := c.ShouldBindJSON(&requestBody); err != nil || requestBody.Payload == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
@@ -134,20 +129,21 @@ func SubmitJobHandler(w http.ResponseWriter, r *http.Request) {
 	jobQueue <- job
 
 	// Respond with a confirmation
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusAccepted)
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	c.JSON(http.StatusAccepted, gin.H{
 		"message": "Job added to queue",
 		"job_id":  job.ID,
 	})
 }
 
 func main() {
+	// Load environment variables
 	err := godotenv.Load()
 	if err != nil {
 		log.Print("Error loading .env file")
 	}
+
 	log.Println("Starting UI/UX analysis server...")
+
 	// Define how many jobs should be processed per minute
 	jobsPerMinute := 5
 
@@ -157,11 +153,22 @@ func main() {
 	// Start a single worker with the rate limiter
 	go worker(1, rateLimiter)
 
-	// Handle the job submission endpoint
-	http.HandleFunc("/submit-job", SubmitJobHandler)
+	// Initialize the Gin router
+	router := gin.Default()
 
-	// Start the HTTP server
-	port := "8080"
-	fmt.Printf("Server listening on port %s\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	// Add health-check route
+	router.GET("/api/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	})
+
+	// Handle the job submission endpoint
+	router.POST("/submit-job", SubmitJobHandler)
+
+	// Start the Gin server
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	log.Printf("Server listening on port %s\n", port)
+	router.Run(":" + port)
 }
