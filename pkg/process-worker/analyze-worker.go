@@ -41,20 +41,23 @@ func AnalyzeReportWorker(id string) {
 	// Get the PostgreSQL database URL from the environment
 	dbURL := os.Getenv("SUPABASE_DB_URL")
 	if dbURL == "" {
-		log.Fatal("DB_URL not provided. Set DB_URL in your environment variables.")
+		log.Print("DB_URL not provided. Set DB_URL in your environment variables.")
+		return
 	}
 
 	// Open a connection to the PostgreSQL database
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
-		log.Fatalf("Error connecting to the database: %v\n", err)
+		log.Printf("Error connecting to the database: %v\n", err)
+		return
 	}
 	defer db.Close()
 
 	// Check the database connection
 	err = db.Ping()
 	if err != nil {
-		log.Fatalf("Could not connect to the database: %v\n", err)
+		log.Printf("Could not connect to the database: %v\n", err)
+		return
 	}
 
 	// Query the report by ID

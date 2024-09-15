@@ -18,7 +18,8 @@ import (
 func uploadToGemini(ctx context.Context, client *genai.Client, path, mimeType string) string {
 	file, err := os.Open(path)
 	if err != nil {
-		log.Fatalf("Error opening file: %v", err)
+		log.Printf("Error opening file: %v", err)
+		return ""
 	}
 	defer file.Close()
 
@@ -28,7 +29,8 @@ func uploadToGemini(ctx context.Context, client *genai.Client, path, mimeType st
 	}
 	fileData, err := client.UploadFile(ctx, "", file, &options)
 	if err != nil {
-		log.Fatalf("Error uploading file: %v", err)
+		log.Printf("Error uploading file: %v", err)
+		return ""
 	}
 
 	log.Printf("Uploaded file %s as: %s", fileData.DisplayName, fileData.URI)
@@ -69,13 +71,13 @@ func AnalyzeUXWithGemini(imagePath string) (*types.GeminiUXAnalysisResult, error
 	}
 	apiKey := os.Getenv("GEMINI_API_KEY")
 	if apiKey == "" {
-		log.Fatalln("Environment variable GEMINI_API_KEY not set")
+		log.Print("Environment variable GEMINI_API_KEY not set")
 		return nil, fmt.Errorf("GEMINI_API_KEY is not set: %s", apiKey)
 	}
 
 	client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
 	if err != nil {
-		log.Fatalf("Error creating client: %v", err)
+		log.Printf("Error creating client: %v", err)
 		return nil, fmt.Errorf("Error creating client: %v", err)
 	}
 	defer client.Close()
@@ -93,12 +95,12 @@ func AnalyzeUXWithGemini(imagePath string) (*types.GeminiUXAnalysisResult, error
 	geminiPrompt, err := loadPrompt("pkg/ai/prompts.json")
 
 	if err != nil {
-		log.Fatalf("Error loading gemini prompt: %v", err)
+		log.Printf("Error loading gemini prompt: %v", err)
 		return nil, fmt.Errorf("Error loading gemini prompt: %v", err)
 	}
 
 	if geminiPrompt == "" {
-		log.Fatalf("Error getting gemini prompt: %v", err)
+		log.Printf("Error getting gemini prompt: %v", err)
 		return nil, fmt.Errorf("Error getting gemini prompt: %v", err)
 	}
 
@@ -125,8 +127,7 @@ func AnalyzeUXWithGemini(imagePath string) (*types.GeminiUXAnalysisResult, error
 	resp, err := session.SendMessage(ctx, genai.Text("Keep the response short and concise"))
 	// resp, err := session.SendMessage(ctx)
 	if err != nil {
-		log.Fatalf("Error sending message: %v", err)
-		fmt.Println(err)
+		log.Printf("Error sending message: %v", err)
 		return nil, fmt.Errorf("Error sending message: %v", err)
 	}
 

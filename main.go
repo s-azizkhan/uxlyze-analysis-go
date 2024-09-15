@@ -145,7 +145,7 @@ func SubmitJobHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Print("Error loading .env file")
 	}
 	log.Println("Starting UI/UX analysis server...")
 	// Define how many jobs should be processed per minute

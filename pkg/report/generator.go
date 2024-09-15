@@ -22,7 +22,8 @@ func SaveBase64ToLocal(base64String string, pathName string) {
 	// Split the Base64 string into data URI parts (if it contains metadata)
 	parts := strings.SplitN(base64String, ",", 2)
 	if len(parts) != 2 {
-		log.Fatal("Invalid Base64 data URI format")
+		log.Print("Invalid Base64 data URI format")
+		return
 	}
 
 	// Detect the MIME type from the metadata
@@ -31,13 +32,15 @@ func SaveBase64ToLocal(base64String string, pathName string) {
 	// Decode the Base64 string into file bytes
 	fileData, err := base64.StdEncoding.DecodeString(rawBase64)
 	if err != nil {
-		log.Fatal("Failed to decode Base64 string:", err)
+		log.Print("Failed to decode Base64 string:", err)
+		return
 	}
 
 	// Save the file to the local system
 	err = os.WriteFile(pathName, fileData, 0644)
 	if err != nil {
-		log.Fatal("Failed to save the file:", err)
+		log.Print("Failed to save the file:", err)
+		return
 	}
 
 	fmt.Println("File saved successfully as:", pathName)
