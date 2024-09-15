@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"uxlyze/analyzer/pkg/ai"
 	"uxlyze/analyzer/pkg/analysis"
 	"uxlyze/analyzer/pkg/screenshot"
 	"uxlyze/analyzer/pkg/types"
@@ -54,7 +55,7 @@ func SaveBase64ToLocal(base64String string, pathName string) {
 //
 //	*types.Report - A pointer to the generated report containing the analysis results.
 //	error - An error if any step of the report generation fails.
-func Generate(url string, takeScreenshots bool, screenshotMode types.ScreenshotMode) (*types.Report, error) {
+func Generate(url string, takeScreenshots bool, includePSI bool, includeAIAnalysis bool) (*types.Report, error) {
 	log.Println("Starting report generation for", url)
 	startTime := time.Now()
 
@@ -79,35 +80,17 @@ func Generate(url string, takeScreenshots bool, screenshotMode types.ScreenshotM
 	report.URL = url
 	report.Screenshots = make(map[string]string)
 
-	// Measure and log each step with timing.
-
-	// Step: Generate summary
-	stepStart = time.Now()
-	report.Summary, err = generateSummary(ctx)
-	if err != nil {
-		log.Printf("Error generating summary: %v\n", err)
-	}
-	log.Printf("Generating summary took: %v\n", time.Since(stepStart))
-
-	// Step: Analyze Visual Hierarchy
-	stepStart = time.Now()
-	report.VisualHierarchy, err = analysis.AnalyzeVisualHierarchy(ctx)
-	if err != nil {
-		log.Printf("Error analyzing visual hierarchy: %v\n", err)
-	}
-	log.Printf("Analyzing visual hierarchy took: %v\n", time.Since(stepStart))
-
-	// Step: Analyze Navigation
-	stepStart = time.Now()
-	report.Navigation, err = analysis.AnalyzeNavigation(ctx)
-	if err != nil {
-		log.Printf("Error analyzing navigation: %v\n", err)
-	}
-	log.Printf("Analyzing navigation took: %v\n", time.Since(stepStart))
+	// // Step: Analyze Visual Hierarchy
+	// stepStart = time.Now()
+	// report.FontSizes, err = analysis.AnalyzeFontSizes(ctx)
+	// if err != nil {
+	// 	log.Printf("Error analyzing visual hierarchy: %v\n", err)
+	// }
+	// log.Printf("Analyzing visual hierarchy took: %v\n", time.Since(stepStart))
 
 	// Step: Analyze Mobile Friendliness
 	stepStart = time.Now()
-	report.MobileFriendliness, err = analysis.AnalyzeMobileFriendliness(ctx)
+	report.MobileFriendly, err = analysis.AnalyzeMobileFriendly(ctx)
 	if err != nil {
 		log.Printf("Error analyzing mobile friendliness: %v\n", err)
 	}
@@ -121,17 +104,47 @@ func Generate(url string, takeScreenshots bool, screenshotMode types.ScreenshotM
 	}
 	log.Printf("Analyzing readability took: %v\n", time.Since(stepStart))
 
+	// Step: Analyze Navigation
+	stepStart = time.Now()
+	report.Navigation, err = analysis.AnalyzeNavigation(ctx)
+	if err != nil {
+		log.Printf("Error analyzing navigation: %v\n", err)
+	}
+	log.Printf("Analyzing navigation took: %v\n", time.Since(stepStart))
+
+	// Step: Analyze Color Usage
+	stepStart = time.Now()
+	report.ColorUsage, err = analysis.AnalyzeColorUsage(ctx)
+	if err != nil {
+		log.Printf("Error analyzing color usage: %v\n", err)
+	}
+	log.Printf("Analyzing color usage took: %v\n", time.Since(stepStart))
+
+	// Step: Analyze Font Usage
+	stepStart = time.Now()
+	report.FontUsage, err = analysis.AnalyzeFontUsage(ctx)
+	if err != nil {
+		log.Printf("Error analyzing font usage: %v\n", err)
+	}
+	log.Printf("Analyzing font usage took: %v\n", time.Since(stepStart))
+
+	// Step: Analyze SEO
+	stepStart = time.Now()
+	report.SEO, err = analysis.AnalyzeSEO(ctx)
+	if err != nil {
+		log.Printf("Error analyzing SEO : %v\n", err)
+	}
+	log.Printf("Analyzing SEO took: %v\n", time.Since(stepStart))
+
 	// Step: Capture Screenshots
 	if takeScreenshots {
 
-		if screenshotMode == types.Desktop || screenshotMode == types.Both {
-			stepStart = time.Now()
-			report.Screenshots["VisualHierarchy"], err = screenshot.Capture(ctx, "body")
-			if err != nil {
-				log.Printf("Error capturing visual hierarchy screenshot: %v\n", err)
-			}
-			log.Printf("Capturing VisualHierarchy screenshot took: %v\n", time.Since(stepStart))
+		stepStart = time.Now()
+		report.Screenshots["Desktop"], err = screenshot.Capture(ctx, "body")
+		if err != nil {
+			log.Printf("Error capturing Desktop screenshot: %v\n", err)
 		}
+		log.Printf("Capturing Desktop screenshot took: %v\n", time.Since(stepStart))
 
 		stepStart = time.Now()
 		report.Screenshots["Navigation"], err = screenshot.Capture(ctx, "nav")
@@ -140,43 +153,43 @@ func Generate(url string, takeScreenshots bool, screenshotMode types.ScreenshotM
 		}
 		log.Printf("Capturing Navigation screenshot took: %v\n", time.Since(stepStart))
 
-		if screenshotMode == types.Mobile || screenshotMode == types.Both {
-			// Emulate mobile view and capture mobile friendliness screenshot.
-			stepStart = time.Now()
-			_ = chromedp.Run(ctx, chromedp.EmulateViewport(375, 812, chromedp.EmulateScale(2.0)))
-			report.Screenshots["MobileFriendliness"], err = screenshot.Capture(ctx, "body")
-			if err != nil {
-				log.Printf("Error capturing mobile friendliness screenshot: %v\n", err)
-			}
-			log.Printf("Capturing MobileFriendliness screenshot took: %v\n", time.Since(stepStart))
+		// Emulate mobile view and capture mobile friendliness screenshot.
+		stepStart = time.Now()
+		// calculate the page height
+		var pageHeight int64
+		err = chromedp.Run(ctx, chromedp.EvaluateAsDevTools(`document.body.scrollHeight`, &pageHeight))
+		if err != nil {
+			log.Printf("Error calculating page height: %v\n", err)
 		}
+		_ = chromedp.Run(ctx, chromedp.EmulateViewport(350, pageHeight, chromedp.EmulateScale(2.0)))
+		report.Screenshots["Mobile"], err = screenshot.Capture(ctx, "body")
+		if err != nil {
+			log.Printf("Error capturing mobile friendliness screenshot: %v\n", err)
+		}
+		log.Printf("Capturing Mobile screenshot took: %v\n", time.Since(stepStart))
 
 		// Reset to default desktop viewport.
 		_ = chromedp.Run(ctx, chromedp.EmulateViewport(0, 0))
 
-		// Capture readability screenshot.
-		stepStart = time.Now()
-		report.Screenshots["Readability"], err = screenshot.Capture(ctx, "main")
-		if err != nil {
-			log.Printf("Error capturing readability screenshot: %v\n", err)
-		}
-		// Fall back to capturing body if main doesn't exist.
-		if report.Screenshots["Readability"] == "" {
-			report.Screenshots["Readability"], err = screenshot.Capture(ctx, "body")
+	}
+	// Perform Gemini UX analysis
+	if includeAIAnalysis {
+
+		if report.Screenshots["Desktop"] == "" {
+			log.Println("No screenshot available for Gemini analysis")
+			//  take the screenshot
+			report.Screenshots["Desktop"], err = screenshot.Capture(ctx, "body")
 			if err != nil {
-				log.Printf("Error capturing fallback readability screenshot: %v\n", err)
+				log.Printf("Error capturing Desktop screenshot: %v\n", err)
 			}
 		}
-		log.Printf("Capturing Readability screenshot took: %v\n", time.Since(stepStart))
-
-		// Perform Gemini UX analysis
 		tempUuid := uuid.New()
 		tempImagePath := "temp_screenshot_" + tempUuid.String() + ".png"
-		SaveBase64ToLocal("data:image/png;base64,"+report.Screenshots["VisualHierarchy"], tempImagePath)
+		SaveBase64ToLocal("data:image/png;base64,"+report.Screenshots["Desktop"], tempImagePath)
 		if err != nil {
 			log.Printf("Error saving temporary screenshot: %v\n", err)
 		} else {
-			geminiAnalysis, err := AnalyzeUXWithGemini(tempImagePath)
+			geminiAnalysis, err := ai.AnalyzeUXWithGemini(tempImagePath)
 			if err != nil {
 				log.Printf("Error analyzing UX with Gemini: %v\n", err)
 			} else {
@@ -184,40 +197,31 @@ func Generate(url string, takeScreenshots bool, screenshotMode types.ScreenshotM
 			}
 			os.Remove(tempImagePath)
 		}
+
 	}
+
+	if !takeScreenshots {
+		report.Screenshots["Desktop"] = ""
+		report.Screenshots["Mobile"] = ""
+		report.Screenshots["Navigation"] = ""
+	}
+
+	if includePSI {
+		stepStart = time.Now()
+		psi, err := GetPageSpeedInsights(url)
+		if err != nil {
+			log.Printf("Error getting PageSpeed Insights: %v\n", err)
+		} else {
+			report.PageSpeedInsights = psi
+			log.Printf("Getting PageSpeed Insights took: %v\n", time.Since(stepStart))
+		}
+	}
+
+	report.Title = "UI/UX Analysis Report for " + strings.Split(report.URL, "://")[1]
 
 	// Log total time taken for report generation.
 	log.Printf("Total report generation time: %v\n", time.Since(startTime))
 
 	// Return the generated report.
 	return &report, nil
-}
-
-// generateSummary extracts the title and description metadata from the web page and formats them into a summary.
-//
-// Parameters:
-//
-//	ctx - The context controlling the chromedp browser instance.
-//
-// Returns:
-//
-//	string - A summary containing the title and description of the website.
-//	error - An error if any of the extraction steps fail.
-func generateSummary(ctx context.Context) (string, error) {
-	var title, description string
-
-	// Run chromedp tasks to extract the page title and meta description.
-	err := chromedp.Run(ctx,
-		chromedp.Title(&title),
-		// This JavaScript snippet extracts the content of the "description" meta tag.
-		chromedp.EvaluateAsDevTools(`document.querySelector("meta[name='description']")?.getAttribute("content") || "No description found"`, &description),
-	)
-
-	// If there was an error, return an empty string and the error.
-	if err != nil {
-		return "", err
-	}
-
-	// Return a formatted summary string containing the title and description.
-	return fmt.Sprintf("Website: %s\nDescription: %s", title, description), nil
 }

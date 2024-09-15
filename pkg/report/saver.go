@@ -11,11 +11,12 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
+	"time"
 
 	"uxlyze/analyzer/pkg/types"
 )
 
-func Save(report *types.Report, filename string, psi *types.PageSpeedInsights) error {
+func Save(report *types.Report, filename string) error {
 	log.Printf("Starting Save function. Saving report to %s", filename)
 
 	file, err := os.Create(filename)
@@ -26,7 +27,7 @@ func Save(report *types.Report, filename string, psi *types.PageSpeedInsights) e
 	defer file.Close()
 
 	log.Println("File created successfully, generating HTML content...")
-	htmlContent, err := generateHTMLContent(report, psi)
+	htmlContent, err := generateHTMLContent(report, report.PageSpeedInsights)
 	if err != nil {
 		log.Printf("Error generating HTML content: %v", err)
 		return err
@@ -137,6 +138,7 @@ func getKeyAudits(psi *types.PageSpeedInsights) []map[string]interface{} {
 
 func GetPageSpeedInsights(url string) (*types.PageSpeedInsights, error) {
 	log.Printf("Fetching PageSpeed Insights for URL: %s", url)
+	psiStart := time.Now()
 
 	apiKey := os.Getenv("GOOGLE_PAGE_SPEED_API_KEY")
 	if apiKey == "" {
@@ -161,6 +163,8 @@ func GetPageSpeedInsights(url string) (*types.PageSpeedInsights, error) {
 		log.Printf("Error reading response body: %v", err)
 		return nil, err
 	}
+
+	log.Printf("PageSpeed Insights fetched in %v\n", time.Since(psiStart))
 
 	var psi types.PageSpeedInsights
 	err = json.Unmarshal(body, &psi)

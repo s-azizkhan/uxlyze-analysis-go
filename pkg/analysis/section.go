@@ -11,10 +11,10 @@ import (
 
 func AnalyzeSection(ctx context.Context, selector string) (*types.SectionAnalysis, error) {
 	analysis := &types.SectionAnalysis{
-		Name:         selector,
-		FontSizes:    make(map[string]int),
-		ButtonStyles: make(map[string]string),
-		ColorScheme:  make(map[string]string),
+		Name:        selector,
+		FontSizes:   make(map[string]int),
+		CtaStyles:   make(map[string]string),
+		ColorScheme: make(map[string]string),
 	}
 
 	// Analyze font sizes
@@ -45,7 +45,7 @@ func AnalyzeSection(ctx context.Context, selector string) (*types.SectionAnalysi
 				styles['color'] = computed.color;
 			});
 			return styles;
-		`, &analysis.ButtonStyles),
+		`, &analysis.CtaStyles),
 	)
 	if err != nil {
 		return nil, err
@@ -85,10 +85,10 @@ func calculateScore(analysis *types.SectionAnalysis) int {
 		score += 10
 	}
 
-	if analysis.ButtonStyles["borderRadius"] != "0px" {
+	if analysis.CtaStyles["borderRadius"] != "0px" {
 		score += 10
 	}
-	if analysis.ButtonStyles["backgroundColor"] != "" && analysis.ButtonStyles["backgroundColor"] != "transparent" {
+	if analysis.CtaStyles["backgroundColor"] != "" && analysis.CtaStyles["backgroundColor"] != "transparent" {
 		score += 10
 	}
 
@@ -104,9 +104,9 @@ func calculateScore(analysis *types.SectionAnalysis) int {
 func generateDetails(analysis *types.SectionAnalysis) string {
 	details := fmt.Sprintf("Font sizes used: %v\n", analysis.FontSizes)
 	details += fmt.Sprintf("Button styles: Border Radius: %s, Background Color: %s, Text Color: %s\n",
-		analysis.ButtonStyles["borderRadius"],
-		analysis.ButtonStyles["backgroundColor"],
-		analysis.ButtonStyles["color"])
+		analysis.CtaStyles["borderRadius"],
+		analysis.CtaStyles["backgroundColor"],
+		analysis.CtaStyles["color"])
 	details += fmt.Sprintf("Color scheme: %v\n", analysis.ColorScheme)
 	return details
 }
