@@ -13,6 +13,10 @@ func Capture(ctx context.Context, selector string) (string, error) {
 	var buf []byte
 	var nodeFound bool
 
+	// Create a new context with a longer timeout
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
 	err := chromedp.Run(ctx,
 		chromedp.Evaluate(fmt.Sprintf(`document.querySelector('%s') !== null`, selector), &nodeFound),
 	)
