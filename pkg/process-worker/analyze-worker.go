@@ -31,7 +31,11 @@ type DbReport struct {
 
 func isValidURL(toCheck string) bool {
 	_, err := url.ParseRequestURI(toCheck)
-	return err == nil
+	if err != nil {
+		log.Printf("Invalid URL for URL %s: %s\n", toCheck, err)
+		return false
+	}
+	return true
 }
 
 // AnalyzeReportWorker fetches a report by ID from the PostgreSQL database
