@@ -192,7 +192,7 @@ func Generate(url string, takeScreenshots bool, includePSI bool, includeAIAnalys
 		if err != nil {
 			log.Printf("Error saving temporary screenshot: %v\n", err)
 		} else {
-			geminiAnalysis, err := ai.AnalyzeUXWithGemini(tempImagePath)
+			geminiAnalysis, err := ai.AnalyzeUXWithGemini(tempImagePath, false)
 			if err != nil {
 				log.Printf("Error analyzing UX with Gemini: %v\n", err)
 			} else {

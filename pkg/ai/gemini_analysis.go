@@ -58,7 +58,7 @@ func loadPrompt(filePath string) (string, error) {
 	return geminiPrompt, nil
 }
 
-func AnalyzeUXWithGemini(imagePath string) (*types.GeminiUXAnalysisResult, error) {
+func AnalyzeUXWithGemini(imagePath string, saveToLocal bool) (*types.GeminiUXAnalysisResult, error) {
 
 	ctx := context.Background()
 	// check if the img not exist then return
@@ -144,18 +144,20 @@ func AnalyzeUXWithGemini(imagePath string) (*types.GeminiUXAnalysisResult, error
 			return nil, fmt.Errorf("Error parsing JSON response: %v", err)
 		}
 
-		// Store the result in a JSON file
-		resultJSON, err := json.MarshalIndent(result, "", "  ")
-		if err != nil {
-			return nil, fmt.Errorf("Error marshaling result to JSON: %v", err)
-		}
+		if saveToLocal {
+			// Store the result in a JSON file
+			resultJSON, err := json.MarshalIndent(result, "", "  ")
+			if err != nil {
+				return nil, fmt.Errorf("Error marshaling result to JSON: %v", err)
+			}
 
-		err = os.WriteFile("gemini_result.json", resultJSON, 0644)
-		if err != nil {
-			return nil, fmt.Errorf("Error writing result to file: %v", err)
-		}
+			err = os.WriteFile("gemini_result.json", resultJSON, 0644)
+			if err != nil {
+				return nil, fmt.Errorf("Error writing result to file: %v", err)
+			}
 
-		fmt.Println("Analysis result saved to gemini_result.json")
+			fmt.Println("Analysis result saved to gemini_result.json")
+		}
 	} else {
 		return nil, fmt.Errorf("No valid response from Gemini")
 	}

@@ -11,6 +11,7 @@ type Report struct {
 	FontUsage         map[string]interface{}
 	SEO               map[string]interface{}
 	GeminiAnalysis    *GeminiUXAnalysisResult `json:"geminiAnalysis,omitempty"`
+	AiAnalysis        *GeminiUXAnalysisResult `json:"aiAnalysis,omitempty"`
 	PageSpeedInsights *PageSpeedInsights      `json:"pageSpeedInsights,omitempty"`
 }
 
